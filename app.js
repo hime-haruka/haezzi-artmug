@@ -331,23 +331,33 @@ async function init() {
   postToParent({ type: "ARTMUG_IFRAME_LOADING", state: "start" });
   bindAutoHeight();
 
-  const [hRows, cRows] = await Promise.all([
-    fetchCSV(HEADER_SHEET_CSV_URL),
-    fetchCSV(CONTENT_SHEET_CSV_URL)
-  ]);
+  try {
+    const [hRows, cRows] = await Promise.all([
+      fetchCSV(HEADER_SHEET_CSV_URL),
+      fetchCSV(CONTENT_SHEET_CSV_URL)
+    ]);
 
-  const headers = normalizeHeaders(hRows);
-  const contents = normalizeContents(cRows);
-  const grouped = groupContentsByCategory(contents);
+    const headers = normalizeHeaders(hRows);
+    const contents = normalizeContents(cRows);
+    const grouped = groupContentsByCategory(contents);
 
-  render(headers, grouped);
-  requestHeightUpdate();
-
-  setTimeout(() => {
+    render(headers, grouped);
     requestHeightUpdate();
-    postToParent({ type: "ARTMUG_IFRAME_READY" });
-    postToParent({ type: "ARTMUG_IFRAME_LOADING", state: "done" });
-  }, 1200);
+  } catch (error) {
+    console.error(error);
+    portfolioContainer.innerHTML = `
+      <div class="info-box">
+        데이터를 불러오지 못했습니다.
+      </div>
+    `;
+    requestHeightUpdate();
+  } finally {
+    setTimeout(() => {
+      requestHeightUpdate();
+      postToParent({ type: "ARTMUG_IFRAME_READY" });
+      postToParent({ type: "ARTMUG_IFRAME_LOADING", state: "done" });
+    }, 1200);
+  }
 }
 
 init();
