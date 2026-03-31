@@ -254,7 +254,83 @@ function render(headers, grouped) {
   });
 }
 
+const FRAME_KEY = "marble";
+
+let heightRaf = 0;
+let resizeObserver = null;
+
+function postToParent(payload) {
+  if (window.parent === window) return;
+  window.parent.postMessage(
+    {
+      ...payload,
+      frameKey: FRAME_KEY
+    },
+    "*"
+  );
+}
+
+function getDocHeight() {
+  const body = document.body;
+  const html = document.documentElement;
+
+  return Math.max(
+    body.scrollHeight,
+    body.offsetHeight,
+    body.clientHeight,
+    html.scrollHeight,
+    html.offsetHeight,
+    html.clientHeight
+  );
+}
+
+function sendHeight() {
+  postToParent({
+    type: "ARTMUG_IFRAME_HEIGHT",
+    height: getDocHeight()
+  });
+}
+
+function requestHeightUpdate() {
+  cancelAnimationFrame(heightRaf);
+  heightRaf = requestAnimationFrame(sendHeight);
+}
+
+function bindAutoHeight() {
+  window.addEventListener("load", requestHeightUpdate);
+  window.addEventListener("resize", requestHeightUpdate);
+
+  if ("ResizeObserver" in window) {
+    resizeObserver = new ResizeObserver(() => {
+      requestHeightUpdate();
+    });
+    resizeObserver.observe(document.body);
+    resizeObserver.observe(document.documentElement);
+  }
+
+  const mo = new MutationObserver(() => {
+    requestHeightUpdate();
+  });
+
+  mo.observe(document.body, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    characterData: true
+  });
+
+  window.addEventListener("message", (e) => {
+    if (!e.data) return;
+    if (e.data.type === "ARTMUG_PARENT_READY") {
+      requestHeightUpdate();
+    }
+  });
+}
+
 async function init() {
+  postToParent({ type: "ARTMUG_IFRAME_LOADING", state: "start" });
+  bindAutoHeight();
+
   const [hRows, cRows] = await Promise.all([
     fetchCSV(HEADER_SHEET_CSV_URL),
     fetchCSV(CONTENT_SHEET_CSV_URL)
@@ -265,6 +341,13 @@ async function init() {
   const grouped = groupContentsByCategory(contents);
 
   render(headers, grouped);
+  requestHeightUpdate();
+
+  setTimeout(() => {
+    requestHeightUpdate();
+    postToParent({ type: "ARTMUG_IFRAME_READY" });
+    postToParent({ type: "ARTMUG_IFRAME_LOADING", state: "done" });
+  }, 1200);
 }
 
 init();
