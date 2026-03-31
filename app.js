@@ -307,17 +307,7 @@ function postToParent(payload) {
 }
 
 function getDocHeight() {
-  const body = document.body;
-  const html = document.documentElement;
-
-  return Math.max(
-    body.scrollHeight,
-    body.offsetHeight,
-    body.clientHeight,
-    html.scrollHeight,
-    html.offsetHeight,
-    html.clientHeight
-  );
+  return document.documentElement.getBoundingClientRect().height;
 }
 
 function sendHeight() {
