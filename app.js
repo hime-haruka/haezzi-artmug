@@ -7,17 +7,26 @@ const CONTENT_SHEET_CSV_URL =
 const FIXED_FLOOR_IMAGE =
   "https://lh3.googleusercontent.com/d/1K-NxC9QOBE0ubbXQXRY-hQ8D5GPUiq90";
 
+const FRAME_KEY = "sample";
 const portfolioContainer = document.getElementById("portfolioContainer");
+
+let heightRaf = 0;
+let resizeObserver = null;
 
 function convertGoogleDriveUrl(url) {
   if (!url) return "";
+
   const trimmed = String(url).trim();
+
   if (!trimmed) return "";
   if (trimmed.includes("lh3.googleusercontent.com/d/")) return trimmed;
+
   const fileMatch = trimmed.match(/\/file\/d\/([^/]+)/);
+
   if (fileMatch && fileMatch[1]) {
     return `https://lh3.googleusercontent.com/d/${fileMatch[1]}`;
   }
+
   return trimmed;
 }
 
@@ -51,11 +60,14 @@ function parseCSV(text) {
       if (char === "\r" && nextChar === "\n") {
         i += 1;
       }
+
       row.push(cell);
       cell = "";
+
       if (row.some((v) => String(v).trim() !== "")) {
         rows.push(row);
       }
+
       row = [];
       continue;
     }
@@ -65,6 +77,7 @@ function parseCSV(text) {
 
   if (cell.length > 0 || row.length > 0) {
     row.push(cell);
+
     if (row.some((v) => String(v).trim() !== "")) {
       rows.push(row);
     }
@@ -76,16 +89,22 @@ function parseCSV(text) {
 
   return rows.slice(1).map((values) => {
     const item = {};
+
     headers.forEach((header, index) => {
       item[header] = String(values[index] ?? "").trim();
     });
+
     return item;
   });
 }
 
 async function fetchCSV(url) {
   const res = await fetch(url);
-  if (!res.ok) throw new Error("CSV load error");
+
+  if (!res.ok) {
+    throw new Error("CSV load error");
+  }
+
   const text = await res.text();
   return parseCSV(text);
 }
@@ -114,16 +133,25 @@ function normalizeContents(rows) {
 
 function groupContentsByCategory(items) {
   const map = new Map();
+
   items.forEach((i) => {
-    if (!map.has(i.category)) map.set(i.category, []);
+    if (!map.has(i.category)) {
+      map.set(i.category, []);
+    }
+
     map.get(i.category).push(i);
   });
+
   return map;
 }
 
 function createElement(tag, cls) {
   const el = document.createElement(tag);
-  if (cls) el.className = cls;
+
+  if (cls) {
+    el.className = cls;
+  }
+
   return el;
 }
 
@@ -131,17 +159,21 @@ function createSlider(headerItem, slides) {
   const sliderShell = createElement("div", "slider-shell");
 
   const prevBtn = createElement("button", "slider-btn");
+  prevBtn.type = "button";
+  prevBtn.setAttribute("aria-label", `${headerItem.category} 이전 이미지`);
   prevBtn.innerHTML = `
-  <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-    <path d="m3.86 8.753 5.482 4.796c.646.566 1.658.106 1.658-.753V3.204a1 1 0 0 0-1.659-.753l-5.48 4.796a1 1 0 0 0 0 1.506z"/>
-  </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+      <path d="m3.86 8.753 5.482 4.796c.646.566 1.658.106 1.658-.753V3.204a1 1 0 0 0-1.659-.753l-5.48 4.796a1 1 0 0 0 0 1.506z"/>
+    </svg>
   `;
 
   const nextBtn = createElement("button", "slider-btn");
+  nextBtn.type = "button";
+  nextBtn.setAttribute("aria-label", `${headerItem.category} 다음 이미지`);
   nextBtn.innerHTML = `
-  <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
-    <path d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"/>
-  </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+      <path d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z"/>
+    </svg>
   `;
 
   const sliderFrame = createElement("div", "slider-frame");
@@ -150,8 +182,10 @@ function createSlider(headerItem, slides) {
   if (!slides.length) {
     const empty = createElement("div", "empty-box");
     empty.textContent = "등록된 이미지가 없습니다.";
+
     sliderFrame.appendChild(sliderMeta);
     sliderFrame.appendChild(empty);
+
     sliderMeta.textContent = "0 / 0";
     prevBtn.disabled = true;
     nextBtn.disabled = true;
@@ -185,6 +219,7 @@ function createSlider(headerItem, slides) {
       track.style.transition = anim
         ? "transform 0.55s cubic-bezier(0.22, 1, 0.36, 1)"
         : "none";
+
       track.style.transform = `translateX(-${index * 100}%)`;
       sliderMeta.textContent = `${index + 1} / ${slides.length}`;
       prevBtn.disabled = index === 0;
@@ -201,10 +236,14 @@ function createSlider(headerItem, slides) {
     function move(i) {
       if (lock) return;
       if (i < 0 || i >= slides.length || i === index) return;
+
       lock = true;
       index = i;
       update(true);
-      setTimeout(() => (lock = false), 560);
+
+      setTimeout(() => {
+        lock = false;
+      }, 560);
     }
 
     prevBtn.onclick = () => move(index - 1);
@@ -249,18 +288,15 @@ function createSection(headerItem, grouped) {
 
 function render(headers, grouped) {
   portfolioContainer.innerHTML = "";
+
   headers.forEach((h) => {
     portfolioContainer.appendChild(createSection(h, grouped));
   });
 }
 
-const FRAME_KEY = "sample";
-
-let heightRaf = 0;
-let resizeObserver = null;
-
 function postToParent(payload) {
   if (window.parent === window) return;
+
   window.parent.postMessage(
     {
       ...payload,
@@ -293,7 +329,9 @@ function sendHeight() {
 
 function requestHeightUpdate() {
   cancelAnimationFrame(heightRaf);
-  heightRaf = requestAnimationFrame(sendHeight);
+  heightRaf = requestAnimationFrame(() => {
+    sendHeight();
+  });
 }
 
 function bindAutoHeight() {
@@ -304,6 +342,7 @@ function bindAutoHeight() {
     resizeObserver = new ResizeObserver(() => {
       requestHeightUpdate();
     });
+
     resizeObserver.observe(document.body);
     resizeObserver.observe(document.documentElement);
   }
@@ -321,6 +360,7 @@ function bindAutoHeight() {
 
   window.addEventListener("message", (e) => {
     if (!e.data) return;
+
     if (e.data.type === "ARTMUG_PARENT_READY") {
       requestHeightUpdate();
     }
@@ -342,7 +382,7 @@ function waitForImages(root = document) {
 
   return Promise.all(
     images.map((img) => {
-      if (img.complete) {
+      if (img.complete && img.naturalWidth > 0) {
         return Promise.resolve();
       }
 
@@ -360,12 +400,19 @@ function waitForImages(root = document) {
   );
 }
 
-async function settleLayout() {
-  requestHeightUpdate();
-  await wait(50);
-  requestHeightUpdate();
-  await wait(100);
-  requestHeightUpdate();
+async function waitForFonts() {
+  if (document.fonts && document.fonts.ready) {
+    try {
+      await document.fonts.ready;
+    } catch (error) {}
+  }
+}
+
+async function flushHeight(times = 10, delay = 120) {
+  for (let i = 0; i < times; i += 1) {
+    requestHeightUpdate();
+    await wait(delay);
+  }
 }
 
 async function init() {
@@ -386,16 +433,19 @@ async function init() {
 
     render(headers, grouped);
 
+    await waitForFonts();
     await waitForImages(document);
-    await settleLayout();
+    await flushHeight();
   } catch (error) {
     console.error(error);
+
     portfolioContainer.innerHTML = `
       <div class="info-box">
         데이터를 불러오지 못했습니다.
       </div>
     `;
-    await settleLayout();
+
+    await flushHeight();
   } finally {
     const elapsed = Date.now() - startedAt;
     const remain = Math.max(0, 1200 - elapsed);
@@ -404,7 +454,7 @@ async function init() {
       await wait(remain);
     }
 
-    await settleLayout();
+    await flushHeight();
 
     postToParent({ type: "ARTMUG_IFRAME_READY" });
     postToParent({ type: "ARTMUG_IFRAME_LOADING", state: "done" });
