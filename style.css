@@ -1,0 +1,239 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #f7f3f1;
+  font-family: "Pretendard", "Noto Sans KR", sans-serif;
+  color: #4f3a3a;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+.page {
+  width: 100%;
+  padding: 32px 0 100px;
+}
+
+.portfolio-container {
+  width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 72px;
+}
+
+.portfolio-section {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.section-header {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.section-header img {
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.slider-shell {
+  display: grid;
+  grid-template-columns: 64px 1fr 64px;
+  align-items: center;
+  gap: 18px;
+}
+
+.slider-btn {
+  width: 64px;
+  height: 64px;
+  border: 2px solid #d1a2a2;
+  border-radius: 999px;
+  background: #fff8f8;
+  color: #8c6161;
+  cursor: pointer;
+  font-size: 34px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.slider-btn:hover {
+  transform: translateY(-2px);
+  background: #ffecec;
+}
+
+.slider-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  transform: none;
+}
+
+.slider-frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid #ebd7d7;
+  background: #fffafa;
+  box-shadow: 0 12px 30px rgba(98, 64, 64, 0.12);
+}
+
+.slider-viewport {
+  width: 100%;
+  aspect-ratio: 1080 / 607;
+  overflow: hidden;
+  background: #fff6f6;
+}
+
+.slider-track {
+  display: flex;
+  height: 100%;
+  will-change: transform;
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.slider-slide {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.slider-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #fffafa;
+}
+
+.slider-meta {
+  position: absolute;
+  right: 18px;
+  top: 16px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(216, 184, 184, 0.8);
+  background: rgba(255, 248, 248, 0.92);
+  color: #8a6767;
+  font-size: 14px;
+  backdrop-filter: blur(4px);
+  z-index: 2;
+}
+
+.empty-box {
+  width: 100%;
+  aspect-ratio: 1080 / 607;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  color: #9b7979;
+  font-size: 18px;
+  background: linear-gradient(180deg, #fffafa 0%, #fbefef 100%);
+}
+
+.section-floor img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.info-box {
+  width: 1080px;
+  margin: 0 auto;
+  padding: 28px;
+  border-radius: 20px;
+  border: 1px solid #ead5d5;
+  background: #fffafa;
+  color: #7b5d5d;
+  box-shadow: 0 10px 24px rgba(98, 64, 64, 0.08);
+  white-space: pre-line;
+}
+
+.slider-slide-link {
+  display: block;
+  width: 100%;
+  height: 100%;
+  text-decoration: none;
+  cursor: zoom-in;
+}
+
+.slider-slide-link:focus-visible {
+  outline: 3px solid rgba(209, 162, 162, 0.9);
+  outline-offset: -3px;
+  border-radius: 12px;
+}
+
+.slider-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #fffafa;
+  transition: transform 0.28s ease;
+}
+
+.slider-slide-link:hover .slider-image {
+  transform: scale(1.015);
+}
+
+.slider-btn {
+  width: 64px;
+  height: 64px;
+  border: 2px solid #d1a2a2;
+  border-radius: 999px;
+  background: #fff8f8;
+  color: #8c6161;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.slider-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+.slider-btn:hover {
+  transform: translateY(-2px);
+  background: #ffecec;
+}
+
+.slider-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+  transform: none;
+}
