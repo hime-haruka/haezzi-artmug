@@ -327,7 +327,50 @@ function bindAutoHeight() {
   });
 }
 
+function wait(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+function waitForImages(root = document) {
+  const images = Array.from(root.querySelectorAll("img"));
+
+  if (!images.length) {
+    return Promise.resolve();
+  }
+
+  return Promise.all(
+    images.map((img) => {
+      if (img.complete) {
+        return Promise.resolve();
+      }
+
+      return new Promise((resolve) => {
+        const done = () => {
+          img.removeEventListener("load", done);
+          img.removeEventListener("error", done);
+          resolve();
+        };
+
+        img.addEventListener("load", done, { once: true });
+        img.addEventListener("error", done, { once: true });
+      });
+    })
+  );
+}
+
+async function settleLayout() {
+  requestHeightUpdate();
+  await wait(50);
+  requestHeightUpdate();
+  await wait(100);
+  requestHeightUpdate();
+}
+
 async function init() {
+  const startedAt = Date.now();
+
   postToParent({ type: "ARTMUG_IFRAME_LOADING", state: "start" });
   bindAutoHeight();
 
@@ -342,7 +385,9 @@ async function init() {
     const grouped = groupContentsByCategory(contents);
 
     render(headers, grouped);
-    requestHeightUpdate();
+
+    await waitForImages(document);
+    await settleLayout();
   } catch (error) {
     console.error(error);
     portfolioContainer.innerHTML = `
@@ -350,13 +395,19 @@ async function init() {
         데이터를 불러오지 못했습니다.
       </div>
     `;
-    requestHeightUpdate();
+    await settleLayout();
   } finally {
-    setTimeout(() => {
-      requestHeightUpdate();
-      postToParent({ type: "ARTMUG_IFRAME_READY" });
-      postToParent({ type: "ARTMUG_IFRAME_LOADING", state: "done" });
-    }, 1200);
+    const elapsed = Date.now() - startedAt;
+    const remain = Math.max(0, 1200 - elapsed);
+
+    if (remain > 0) {
+      await wait(remain);
+    }
+
+    await settleLayout();
+
+    postToParent({ type: "ARTMUG_IFRAME_READY" });
+    postToParent({ type: "ARTMUG_IFRAME_LOADING", state: "done" });
   }
 }
 
